@@ -208,8 +208,8 @@ def emit_metrics_func(**context):
 
     # Calculate pipeline duration from DAG run start
     context["dag_run"]
-    execution_date = context["execution_date"]
-    duration = (datetime.utcnow() - execution_date).total_seconds()
+    logical_date = context["logical_date"].replace(tzinfo=None)
+    duration = (datetime.utcnow() - logical_date).total_seconds()
 
     # Record metrics
     metrics.record_fraud_rate(stats["fraud_rate"])
