@@ -25,7 +25,7 @@ DEFAULT_MERCHANT_RISK = {
 }
 
 
-def fetch_recent_transactions(config: Config, minutes: int | None) -> list[dict]:
+def fetch_recent_transactions(config: Config, minutes: int | None = None) -> list[dict]:
     """
     Fetch recent transactions from the API.
 
