@@ -58,7 +58,7 @@ def main():
 
     logger.info("=" * 60)
     logger.info("🚀 Starting fraud detection pipeline (crontab)")
-    logger.info("👤 Participant:", config.participant_name)
+    logger.info(f"👤 Participant: {config.participant_name}")
     logger.info("=" * 60)
 
     try:
@@ -93,8 +93,12 @@ def main():
         user_api_failures = 0
 
         for user_id in unique_user_ids:
-            # TODO: Implement user feature fetching with error handling
-            pass  # Remove this when you implement
+            try:
+                user_features[user_id] = fetch_user_features(config, user_id)
+            except APIError as e:
+                logger.warning(f"Не получилось с {user_id}: {e}")
+                user_api_failures += 1
+                metrics.record_api_failure("user")
 
         logger.info(
             f"✅ Fetched features for {len(user_features)} users ({user_api_failures} failures)"
@@ -104,20 +108,17 @@ def main():
         logger.info("🏪 Fetching merchant risk scores...")
         merchant_risks = {}
 
-        # TODO: Loop through transactions and fetch merchant risks
-        # HINT: Extract unique merchant_ids first
-        # HINT: Use fetch_merchant_risk(config, merchant_id)
-        # HINT: This API is FLAKY - expect failures!
-        # HINT: Use try/except and DEFAULT_MERCHANT_RISK on failures
-        # HINT: Count failures with metrics.record_api_failure("merchants")
-
         # Example starter code:
         unique_merchant_ids = set(t["merchant_id"] for t in transactions)
         merchant_api_failures = 0
 
         for merchant_id in unique_merchant_ids:
-            # TODO: Implement merchant risk fetching with error handling
-            pass  # Remove this when you implement
+            try:
+                merchant_risks[merchant_id] = fetch_merchant_risk(config, merchant_id)
+            except APIError as e:
+                logger.warning(f"Не получилось с {merchant_id}: {e}")
+                merchant_api_failures += 1
+                metrics.record_api_failure("merchants")
 
         logger.info(
             f"✅ Fetched risk scores for {len(merchant_risks)} merchants ({merchant_api_failures} failures)"
@@ -137,34 +138,31 @@ def main():
         # Step 6: Save results
         logger.info("💾 Saving predictions...")
 
-        # TODO: Save predictions to a file
-        # HINT: You can save to JSON or CSV
-        # HINT: Include timestamp in filename to avoid overwriting
-        # HINT: Save to results/ directory
-
         results_dir = Path(__file__).parent / "results"
         results_dir.mkdir(exist_ok=True)
 
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
         results_file = results_dir / f"predictions_{timestamp}.json"
 
-        # TODO: Convert predictions_df to dict and save as JSON
-        # HINT: predictions_df.to_dict(orient='records')
-        # HINT: Use json.dump() with indent=2 for readability
+        results = {
+            "timestamp": timestamp,
+            "total_transactions": len(transactions),
+            "predictions": predictions_df.to_dict(orient="records"),
+        }
+
+        with open(results_file, "w") as fp:
+            json.dump(results, fp, indent=2)
 
         logger.info(f"✅ Results saved to {results_file}")
 
         # Step 7: Calculate and emit metrics
         logger.info("📊 Calculating metrics...")
 
-        # TODO: Calculate fraud rate
-        # HINT: отношение тех кто фрод к общему числу
+        fraud_count = predictions_df["is_fraud"].sum()
+        fraud_rate = fraud_count / len(predictions_df)
+        # по-хорошему тут надо бы хэндлить ситуацию деления на ноль
 
-        # TODO: Calculate average fraud probability
-        # HINT: это через .mean()
-
-        fraud_rate = 0.0  # TODO: Replace with actual calculation
-        avg_fraud_prob = 0.0  # TODO: Replace with actual calculation
+        avg_fraud_prob = predictions_df["fraud_probability"].mean()
 
         # Record metrics
         metrics.record_fraud_rate(fraud_rate)
@@ -182,9 +180,7 @@ def main():
         logger.info("=" * 60)
         logger.info(f"✨ Pipeline completed successfully in {duration:.2f}s")
         logger.info(f"   Transactions: {len(transactions)}")
-        logger.info(
-            f"   Fraud detected: {predictions_df['is_fraud'].sum()} ({fraud_rate:.1%})"
-        )
+        logger.info(f"   Fraud detected: {predictions_df['is_fraud'].sum()} ({fraud_rate:.1%})")
         logger.info(f"   Avg fraud probability: {avg_fraud_prob:.3f}")
         logger.info("=" * 60)
 

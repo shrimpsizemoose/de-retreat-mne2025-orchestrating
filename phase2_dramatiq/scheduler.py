@@ -29,9 +29,7 @@ def main():
 
     logger.info("🕐 Initializing APScheduler...")
     logger.info(f"👤 Participant: {config.participant_name}")
-    logger.info(
-        f"⏱️  Pipeline interval: every {config.pipeline_interval_minutes} minutes"
-    )
+    logger.info(f"⏱️  Pipeline interval: every {config.pipeline_interval_minutes} minutes")
 
     # Create scheduler
     scheduler = BlockingScheduler()
@@ -52,7 +50,7 @@ def main():
     )
 
     logger.info("✅ Scheduler configured")
-    logger.info(f"📅 Next run: {scheduler.get_jobs()[0].next_run_time}")
+    # logger.info(f"📅 Next run: {scheduler.get_jobs()[0].next_run_time}")
     logger.info("")
     logger.info("🚀 Starting scheduler (Ctrl+C to stop)...")
     logger.info("=" * 60)
