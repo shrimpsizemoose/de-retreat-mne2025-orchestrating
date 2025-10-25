@@ -1,0 +1,19 @@
+# Fraud Detection Pipeline - Crontab Example
+# Run pipeline every 2 minutes
+
+# IMPORTANT: Replace paths with your actual paths!
+# Find uv path: which uv
+# Find workshop path: pwd (when in phase1_crontab directory)
+
+# Run every 2 minutes with logging
+*/2 * * * * cd /path/to/workshop-repo/phase1_crontab && /path/to/uv run python fraud_detection.py >> logs/cron.log 2>&1
+
+# Example for specific user:
+# */2 * * * * cd /home/shrimpsizemoose/2025ht-de-retreat-mngro/phase1_crontab && /home/shrimpsizemoose/.local/bin/uv run python fraud_detection.py >> logs/cron.log 2>&1
+
+# Tips:
+# - Use absolute paths (cron doesn't have your shell environment)
+# - Redirect output to a log file for debugging
+# - Test the command manually first before adding to crontab
+# - Check cron is running: sudo systemctl status cron
+# - Check logs if scheduler is not working: grep CRON /var/log/syslog
