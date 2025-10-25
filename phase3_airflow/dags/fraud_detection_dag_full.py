@@ -179,7 +179,7 @@ def save_results_func(**context):
     task_instance = context["task_instance"]
     result = task_instance.xcom_pull(task_ids="run_inference")
 
-    results_dir = Path("/opt/airflow/results")
+    results_dir = Path(__file__).parent.parent / "results"
     results_dir.mkdir(exist_ok=True)
 
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
